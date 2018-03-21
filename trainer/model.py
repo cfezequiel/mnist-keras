@@ -11,19 +11,6 @@ NUM_CLASSES = 10
 INPUT_SHAPE = (IMG_ROWS, IMG_COLS, 1)
 
 
-class MNISTData(object):
-
-  def __init__(self):
-    (x_train, y_train), (x_test, y_test) = mnist.load_data()
-    self.x_train = _preprocess_features(x_train)
-    self.y_train = _preprocess_labels(y_train, NUM_CLASSES)
-    self.x_test = _preprocess_features(x_test)
-    self.y_test = _preprocess_labels(y_test, NUM_CLASSES)
-
-
-data = MNISTData()
-
-
 def _preprocess_features(x):
   """Preprocess input features."""
   x = x.reshape(x.shape[0], IMG_ROWS, IMG_COLS, 1)
@@ -39,9 +26,23 @@ def _preprocess_labels(y, num_classes):
   return keras.utils.to_categorical(y, num_classes)
 
 
+class MNISTData(object):
+
+  def __init__(self):
+    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+    self.x_train = _preprocess_features(x_train)
+    self.y_train = _preprocess_labels(y_train, NUM_CLASSES)
+    self.x_test = _preprocess_features(x_test)
+    self.y_test = _preprocess_labels(y_test, NUM_CLASSES)
+
+
+data = MNISTData()
+
+
 def make_input_fn(features, labels=None, shuffle=False):
   """Input function for training/eval."""
 
+  # TODO(cezequiel): implement batching option
   input_fn = tf.estimator.inputs.numpy_input_fn(
       x={'images_input': features},
       y=labels,
@@ -55,7 +56,7 @@ def make_train_input_fn(shuffle=False):
 
 
 def make_eval_input_fn():
-  return make_input_fn(data.x_test, data.y_test, shuffle=False)
+  return make_input_fn(data.x_test, data.y_test)
 
 
 def make_json_serving_input_fn(input_shape):

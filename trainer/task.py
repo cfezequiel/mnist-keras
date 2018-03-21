@@ -12,6 +12,7 @@ import model
 
 
 DEFAULT_STEPS = 10
+SERVING_INPUT_SHAPE = [None] + list(model.INPUT_SHAPE)
 
 
 def run_experiment(hparams):
@@ -22,7 +23,8 @@ def run_experiment(hparams):
 
   # Build evaluation/serving spec
   eval_input_fn = model.make_eval_input_fn()
-  exporter = tf.estimator.FinalExporter('mnist', model.json_serving_input_fn)
+  exporter = tf.estimator.FinalExporter(
+      'mnist', model.make_json_serving_input_fn(SERVING_INPUT_SHAPE))
   eval_spec = tf.estimator.EvalSpec(
       eval_input_fn, steps=hparams.eval_steps, exporters=[exporter])
 
@@ -43,12 +45,16 @@ def parse_arguments(argv):
                       help='Number of training steps.')
   parser.add_argument('--eval-steps', type=int, default=DEFAULT_STEPS,
                       help='Number of evaluation steps.')
+  parser.add_argument('--shuffle', type=bool, default=True,
+                      help='Whether or not to shuffle training data.')
   parser.add_argument('--job-dir', required=True,
-                      help='GCS location to write checkpoints and export model')
+                      help='Location to write checkpoints and export model')
   return parser.parse_args()
 
 
 if __name__ == '__main__':
   args = parse_arguments(sys.argv[1:])
   hparams = hparam.HParams(**args.__dict__)
+
+  tf.logging.set_verbosity('DEBUG')
   run_experiment(hparams)
